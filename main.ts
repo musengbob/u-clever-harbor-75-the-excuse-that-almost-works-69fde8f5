@@ -16,18 +16,28 @@ const ENTRY =
 
 // The kit gate: entry.txt must be UTF-8 text of 1 to 140 characters and
 // the excuse at most 20 words. Fail loudly rather than emit a bad entry.
-const words = ENTRY.trim().split(/\s+/).length;
-if (ENTRY.length < 1 || ENTRY.length > 140) {
-  throw new Error(`entry is ${ENTRY.length} chars, must be 1-140`);
+function validateEntry(entry: string): { chars: number; words: number } {
+  const words = entry.trim().split(/\s+/).length;
+  if (entry.length < 1 || entry.length > 140) {
+    throw new Error(`entry is ${entry.length} chars, must be 1-140`);
+  }
+  if (words > 20) {
+    throw new Error(`entry is ${words} words, must be at most 20`);
+  }
+  if (entry.includes("\n")) {
+    throw new Error("entry must be a single line");
+  }
+  return { chars: entry.length, words };
 }
-if (words > 20) {
-  throw new Error(`entry is ${words} words, must be at most 20`);
+
+function buildEntryLine(): string {
+  return ENTRY;
 }
-if (ENTRY.includes("\n")) {
-  throw new Error("entry must be a single line");
-}
+
+const entry = buildEntryLine();
+const { chars, words } = validateEntry(entry);
 
 const outDir = process.env.MAKEFUN_OUTPUT_DIR || join(process.cwd(), "output");
 mkdirSync(outDir, { recursive: true });
-writeFileSync(join(outDir, "entry.txt"), ENTRY, "utf8");
-console.log(`wrote entry.txt (${ENTRY.length} chars, ${words} words) to ${outDir}`);
+writeFileSync(join(outDir, "entry.txt"), entry, "utf8");
+console.log(`wrote entry.txt (${chars} chars, ${words} words) to ${outDir}`);
